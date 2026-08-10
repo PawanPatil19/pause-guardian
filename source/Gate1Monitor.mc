@@ -3,9 +3,6 @@ import Toybox.Activity;
 import Toybox.Position;
 
 class Gate1Monitor {
-    private var _hasStoppedAt as Boolean;
-    private var _stoppedAt as Number;
-    private var _probeSent as Boolean;
     private var _sawStopped as Boolean;
     private var _sawPaused as Boolean;
     private var _observationMask as Number;
@@ -25,11 +22,9 @@ class Gate1Monitor {
     private var _previousLatE7 as Number;
     private var _previousLonE7 as Number;
     private var _identicalTupleCount as Number;
+    private var _movementReminderSent as Boolean;
 
     public function initialize() {
-        _hasStoppedAt = false;
-        _stoppedAt = 0;
-        _probeSent = false;
         _sawStopped = false;
         _sawPaused = false;
         _observationMask = 0;
@@ -49,34 +44,7 @@ class Gate1Monitor {
         _previousLatE7 = 0;
         _previousLonE7 = 0;
         _identicalTupleCount = 0;
-    }
-
-    public function shouldProbe(nowMs as Number, isStopped as Boolean) as Boolean {
-        if (!isStopped) {
-            _hasStoppedAt = false;
-            _probeSent = false;
-            return false;
-        }
-
-        if (!_hasStoppedAt) {
-            _hasStoppedAt = true;
-            _stoppedAt = nowMs;
-            return false;
-        }
-
-        var elapsed = nowMs - _stoppedAt;
-        if ((elapsed < 0) || (elapsed > 60000)) {
-            _stoppedAt = nowMs;
-            _probeSent = false;
-            return false;
-        }
-
-        if (!_probeSent && (elapsed >= 5000)) {
-            _probeSent = true;
-            return true;
-        }
-
-        return false;
+        _movementReminderSent = false;
     }
 
     public function noteTimerState(timerState as Number) as Void {
@@ -86,6 +54,10 @@ class Gate1Monitor {
             _sawPaused = true;
         }
 
+        if (timerState != Activity.TIMER_STATE_STOPPED) {
+            rearmReminder();
+        }
+
         if (_sawStopped && _sawPaused) {
             _observationMask |= 0x04;
         }
@@ -93,6 +65,10 @@ class Gate1Monitor {
 
     public function getObservationMask() as Number {
         return _observationMask;
+    }
+
+    public function rearmReminder() as Void {
+        _movementReminderSent = false;
     }
 
     public function noteCallback(nowMs as Number, isStopped as Boolean) as Void {
@@ -156,13 +132,13 @@ class Gate1Monitor {
         lonE7 as Number?,
         isStopped as Boolean,
         isRunningProfile as Boolean
-    ) as Void {
+    ) as Boolean {
         if ((speedMmPerSecond == null) || (gpsQuality == null) ||
             (latE7 == null) || (lonE7 == null)) {
             _movementCandidateActive = false;
             _hasPreviousTuple = false;
             _identicalTupleCount = 0;
-            return;
+            return false;
         }
 
         var usableGps = (gpsQuality == Position.QUALITY_USABLE) ||
@@ -174,7 +150,7 @@ class Gate1Monitor {
             _movementCandidateActive = false;
             _hasPreviousTuple = false;
             _identicalTupleCount = 0;
-            return;
+            return false;
         }
 
         if (_hasPreviousTuple &&
@@ -192,7 +168,7 @@ class Gate1Monitor {
 
         if (_identicalTupleCount >= 3) {
             _movementCandidateActive = false;
-            return;
+            return false;
         }
 
         if (!_movementCandidateActive ||
@@ -203,7 +179,7 @@ class Gate1Monitor {
             _movementLastAt = nowMs;
             _movementStartLatE7 = latE7;
             _movementStartLonE7 = lonE7;
-            return;
+            return false;
         }
 
         _movementLastAt = nowMs;
@@ -215,9 +191,17 @@ class Gate1Monitor {
                 lonE7
             ) >= 6.0) {
                 _observationMask |= 0x02;
+                _movementCandidateActive = false;
+                if (!_movementReminderSent) {
+                    _movementReminderSent = true;
+                    return true;
+                }
+                return false;
             }
             _movementCandidateActive = false;
         }
+
+        return false;
     }
 
     public function noteMemorySample(usedMemory as Number) as Void {

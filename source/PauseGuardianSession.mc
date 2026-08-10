@@ -3,8 +3,8 @@ import Toybox.Lang;
 import Toybox.System;
 
 module PauseGuardianSession {
-    const SUMMARY_KEY = "last_gate1_summary_v1";
-    const BUILD_ID = "g1-0.1.0";
+    const SUMMARY_KEY = "last_reminder_summary_v2";
+    const BUILD_ID = "test-0.2.0";
 
     var monitor = new Gate1Monitor();
     var eventMask = 0;

@@ -1,6 +1,6 @@
 # Pause Guardian user guide
 
-This guide installs and configures the Gate 1 diagnostic on a Garmin Instinct 2. The current build is for technical testing and is not available in the Connect IQ Store.
+This guide installs and configures the movement-reminder field test on a Garmin Instinct 2. The current build is for outdoor testing and is not available in the Connect IQ Store.
 
 ## What you need
 
@@ -46,7 +46,7 @@ On the Instinct 2:
 6. Select an existing screen or add a new one.
 7. Edit the data fields and select one individual field slot.
 8. Select **Connect IQ**.
-9. Select **Pause Guardian G1**.
+9. Select **Pause Guardian Test**.
 
 The important detail is step 7. **Connect IQ may not appear until an individual field slot is selected.**
 
@@ -58,16 +58,20 @@ The important detail is step 7. **Connect IQ may not appear until an individual 
 
 The exact value depends on which observations have already been collected. Seeing `Oxx` confirms that the field is loaded; it does not mean the physical feasibility test has passed.
 
-## 5. Run the diagnostic
+## 5. Test the reminder
 
-Use the full [Gate 1 checklist](../GATE1_TEST.md). In summary:
+Use the full [movement-reminder checklist](../GATE1_TEST.md). In summary:
 
 1. Acquire GPS and start an outdoor Run.
 2. Manually stop the activity and leave Garmin's native pause screen visible.
-3. Confirm a three-pulse vibration near five seconds.
-4. Move continuously while still stopped and inspect the observation mask afterward.
-5. Test Auto Pause separately.
-6. Complete the five-minute stopped/sleep test.
+3. Remain stationary for at least ten seconds and confirm there is no reminder.
+4. While still manually stopped, run continuously for at least ten seconds.
+5. Confirm one three-pulse reminder after the watch observes at least six seconds and six metres of qualifying movement.
+6. Keep moving and confirm it does not remind a second time during the same pause.
+7. Resume, manually pause again, and confirm the reminder can trigger in the new pause episode.
+8. Inspect the observation mask afterward.
+9. Test Auto Pause separately and confirm it never triggers the reminder.
+10. Complete the five-minute stopped/sleep test.
 
 The field can be on another data page while Garmin's native pause screen is visible. The test is specifically checking whether Garmin keeps the data field alive in that situation.
 
@@ -82,7 +86,7 @@ The field can be on another data page while Garmin's native pause screen is visi
 | `01` | Stopped callbacks continued at the required rate |
 | `02` | Fresh qualifying movement was observed while manually stopped |
 | `04` | Manual Stop and Auto Pause were distinguished |
-| `08` | A vibration call was attempted |
+| `08` | A movement-triggered reminder vibration was attempted |
 | `10` | Callback continuity lasted five minutes |
 | `20` | Sampled memory stayed within the diagnostic threshold |
 | `40` | A checkpoint was stored |
@@ -100,7 +104,7 @@ Examples:
 
 Select an individual data-field slot first. Connect IQ is a field category inside the slot picker, not a top-level Data Screens option.
 
-### Pause Guardian G1 does not appear
+### Pause Guardian Test does not appear
 
 - Confirm that `PauseGuardian.prg` was copied to `GARMIN/APPS`.
 - Confirm that the watch volume was ejected cleanly.
@@ -116,12 +120,13 @@ This is expected for ten seconds after launch or reset. It is the previous store
 
 - Confirm system vibration is enabled and Do Not Disturb is off.
 - Confirm the activity was manually stopped, not Auto Paused.
-- Wait at least five seconds after the manual stop.
-- Record the failure in the Gate 1 checklist. A missing vibration behind the pause screen may be a platform limitation, not a detector bug.
+- Acquire a good outdoor GPS fix before starting.
+- Run continuously for at least ten seconds while the timer remains manually stopped.
+- Record the failure in the field-test checklist. A missing vibration behind the pause screen may be a platform limitation, not a detector bug.
 
 ### `02` never appears
 
-Use an outdoor Run with a good GPS fix. While manually stopped, move continuously for at least ten seconds at running speed. The diagnostic intentionally rejects missing, low-quality, repeated, slow, or interrupted samples.
+Use an outdoor Run with a good GPS fix. While manually stopped, move continuously for at least ten seconds at running speed. The detector intentionally rejects missing, low-quality, repeated, slow, or interrupted samples.
 
 ## Uninstall
 
