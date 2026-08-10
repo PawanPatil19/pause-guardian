@@ -27,11 +27,12 @@ The watch cannot confirm that a vibration was physically felt, so even `O7F` sti
 
 ## Install on the watch
 
-1. Connect the Instinct 2 to the Mac by USB.
-2. Copy `bin/PauseGuardian.prg` into the watch's `GARMIN/APPS` directory.
-3. Eject the watch cleanly.
-4. On the watch, open Run settings and add **Pause Guardian G1** to a data-field slot.
-5. Complete [GATE1_TEST.md](GATE1_TEST.md) before enabling reminder behavior.
+1. Complete the release build below to create `bin/PauseGuardian.prg`.
+2. Connect the Instinct 2 to the Mac by USB.
+3. Copy `bin/PauseGuardian.prg` into the watch's `GARMIN/APPS` directory.
+4. Eject the watch cleanly.
+5. On the watch, open Run settings and add **Pause Guardian G1** to a data-field slot.
+6. Complete [GATE1_TEST.md](GATE1_TEST.md) before enabling reminder behavior.
 
 ## Build and test
 
@@ -42,4 +43,8 @@ task_ciq_sdk="$(cat "${HOME}/Library/Application Support/Garmin/ConnectIQ/curren
 "$task_ciq_sdk/bin/monkeyc" -d instinct2 -f monkey.jungle \
   -o bin/PauseGuardianTests.prg -y /ABS/PATH/developer_key.der -w -t -l 1
 "$task_ciq_sdk/bin/monkeydo" bin/PauseGuardianTests.prg instinct2 -t
+
+# Build the signed USB-sideload artifact
+"$task_ciq_sdk/bin/monkeyc" -d instinct2 -f monkey.jungle \
+  -o bin/PauseGuardian.prg -y /ABS/PATH/developer_key.der -w -r -O 2z -l 1
 ```
