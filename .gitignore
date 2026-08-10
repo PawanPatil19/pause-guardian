@@ -1,0 +1,12 @@
+# Garmin build output
+bin/
+
+# Developer signing keys must never be committed
+*.der
+*.pem
+*.key
+
+# Local tooling
+.DS_Store
+.idea/
+.vscode/
