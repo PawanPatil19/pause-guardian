@@ -1,6 +1,6 @@
 # Architecture
 
-Pause Guardian Gate 1 is a Connect IQ data field embedded in Garmin's native activity experience. It is deliberately small because the Instinct 2 data-field memory budget is 32 KiB and the smallest native field layouts have very limited space.
+Pause Guardian Test is a Connect IQ data field embedded in Garmin's native activity experience. It is deliberately small because the Instinct 2 data-field memory budget is 32 KiB and the smallest native field layouts have very limited space.
 
 ## Runtime flow
 
@@ -9,7 +9,7 @@ flowchart LR
     A["Native Garmin Run"] --> B["Activity.Info and timer callbacks"]
     B --> C["PauseGuardianField"]
     C --> D["Gate1Monitor"]
-    C --> E["Three-pulse vibration probe"]
+    C --> E["Movement-triggered reminder"]
     D --> F["Oxx observation mask"]
     D --> G["PauseGuardianSession checkpoint"]
     G --> H["Lxx previous-session mask"]
@@ -22,7 +22,7 @@ Garmin owns the activity recording and screen navigation. Pause Guardian only ob
 | File | Responsibility |
 | --- | --- |
 | `PauseGuardianApp.mc` | Creates the data field, loads stored state, and checkpoints on shutdown |
-| `PauseGuardianField.mc` | Receives activity samples and timer events, normalizes inputs, draws the compact value, and requests the vibration probe |
+| `PauseGuardianField.mc` | Receives activity samples and timer events, normalizes inputs, draws the compact value, and requests the movement reminder |
 | `Gate1Monitor.mc` | Applies timing, movement, memory, and persistence evidence rules to the observation mask |
 | `PauseGuardianSession.mc` | Owns current and previous session state and stores a compact summary |
 | `PauseGeo.mc` | Calculates short local distances from scaled coordinates without allocating `Position.Location` objects |
@@ -51,17 +51,17 @@ The `02` observation is intentionally conservative. A candidate requires all of 
 
 The candidate resets when telemetry is missing, GPS is poor, speed is low, the profile is not running, the timer moves backward, a callback gap exceeds two seconds, or three identical speed/location tuples suggest cached data. A six-second window that has not reached six metres is closed rather than allowed to qualify later.
 
-## Vibration probe
+## Movement-triggered reminder
 
-After five seconds in manual `STOPPED`, the field requests this pattern once:
+When the movement candidate reaches six seconds and six metres in authoritative manual `STOPPED`, the field requests this pattern once:
 
 ```text
 500 ms on, 250 ms off, 500 ms on, 250 ms off, 500 ms on
 ```
 
-The `08` bit records that the API call returned without an exception. Connect IQ does not report whether the wearer physically felt the vibration, so physical confirmation remains outside the automatic mask.
+The `08` bit records that the API call returned without an exception. Connect IQ does not report whether the wearer physically felt the reminder, so physical confirmation remains outside the automatic mask.
 
-Auto Pause resets the manual-stop probe and must not trigger it.
+The reminder fires at most once per manual-pause episode. Resuming the activity re-arms it for the next manual pause. Stationary pauses, incomplete movement windows, and Auto Pause must not trigger it.
 
 ## Persistence
 
@@ -84,6 +84,6 @@ Storage is read back immediately to validate the schema and build ID. On reset, 
 
 ## Product boundary
 
-Gate 1 answers whether this architecture is possible on real firmware. The future reminder detector should only be built if callbacks, fresh telemetry, state distinction, haptics, sleep recovery, and memory all pass the physical checklist.
+The field-test build exercises the real reminder path while retaining evidence about callbacks, fresh telemetry, state distinction, haptics, sleep recovery, and memory. Physical results decide whether the detector can progress toward a general release.
 
 If the native pause screen suspends the data field or freezes its telemetry, tuning thresholds will not solve the problem. That result would require a different Garmin app architecture or a narrower product promise.

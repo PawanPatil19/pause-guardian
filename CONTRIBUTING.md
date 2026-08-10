@@ -53,7 +53,7 @@ Build a release PRG and package:
 
 ## Adding detector behavior
 
-Detector changes should include boundary tests for null telemetry, poor GPS, cached tuples, callback gaps, timer rollover, Auto Pause, movement duration, distance, and one-shot vibration behavior. Favor false-negative evidence during Gate 1: a platform capability should not pass because stale or ambiguous data was accepted.
+Detector changes should include boundary tests for null telemetry, poor GPS, cached tuples, callback gaps, timer rollover, Auto Pause, movement duration, distance, and one-shot vibration behavior. Favor false negatives during field testing: the reminder should not trigger from stale or ambiguous data.
 
 ## Adding a Garmin device
 

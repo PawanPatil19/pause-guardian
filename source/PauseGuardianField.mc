@@ -12,7 +12,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
 
     public function initialize() {
         SimpleDataField.initialize();
-        label = "Pause G1";
+        label = "Pause";
         _eventTimerState = Activity.TIMER_STATE_OFF;
         _vibrationPattern = [
             new Attention.VibeProfile(100, 500),
@@ -52,11 +52,12 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
         var speed = info.currentSpeed;
         var location = info.currentLocation;
         var quality = info.currentLocationAccuracy;
+        var shouldRemind = false;
         if ((speed != null) && (location != null) && (quality != null)) {
             var profile = Activity.getProfileInfo();
             var isRunning = (profile != null) && (profile.sport == Activity.SPORT_RUNNING);
             var degrees = location.toDegrees();
-            PauseGuardianSession.monitor.noteMovementSample(
+            shouldRemind = PauseGuardianSession.monitor.noteMovementSample(
                 nowMs,
                 (speed * 1000.0f).toNumber(),
                 quality,
@@ -66,13 +67,13 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
                 isRunning
             );
         } else {
-            PauseGuardianSession.monitor.noteMovementSample(
+            shouldRemind = PauseGuardianSession.monitor.noteMovementSample(
                 nowMs, null, null, null, null, qualifyingStopped, false
             );
         }
 
-        if (PauseGuardianSession.monitor.shouldProbe(nowMs, isStopped)) {
-            vibrateProbe();
+        if (shouldRemind) {
+            vibrateReminder();
         }
 
         var display = PauseGuardianSession.displayText();
@@ -87,7 +88,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
         }
         _eventTimerState = Activity.TIMER_STATE_ON;
         PauseGuardianSession.eventMask |= 0x01;
-        PauseGuardianSession.monitor.shouldProbe(System.getTimer(), false);
+        PauseGuardianSession.monitor.rearmReminder();
     }
 
     public function onTimerStop() as Void {
@@ -100,7 +101,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
         PauseGuardianSession.markDirty();
         _eventTimerState = Activity.TIMER_STATE_PAUSED;
         PauseGuardianSession.eventMask |= 0x04;
-        PauseGuardianSession.monitor.shouldProbe(System.getTimer(), false);
+        PauseGuardianSession.monitor.rearmReminder();
     }
 
     public function onTimerResume() as Void {
@@ -108,7 +109,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
         _eventTimerState = Activity.TIMER_STATE_ON;
         PauseGuardianSession.eventMask |= 0x08;
         PauseGuardianSession.checkpoint();
-        PauseGuardianSession.monitor.shouldProbe(System.getTimer(), false);
+        PauseGuardianSession.monitor.rearmReminder();
     }
 
     public function onTimerReset() as Void {
@@ -119,7 +120,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
         PauseGuardianSession.reset();
     }
 
-    private function vibrateProbe() as Void {
+    private function vibrateReminder() as Void {
         if (!(Attention has :vibrate)) {
             return;
         }

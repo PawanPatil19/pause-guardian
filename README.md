@@ -2,7 +2,7 @@
 
 Pause Guardian is an experimental Garmin data field for runners and cyclists who sometimes resume moving but forget to resume their activity recording.
 
-The current release is **Gate 1**, a diagnostic build for the Garmin Instinct 2. It proves whether Garmin continues delivering timer, GPS, and vibration access while the native activity is manually paused. It installs on a physical watch and displays its diagnostic field, but it is not yet the finished forgotten-resume reminder.
+The current release is a **movement-reminder field test** for the Garmin Instinct 2. While a native Run activity is manually paused, it watches for fresh sustained movement and sends one three-pulse reminder. It is not yet a Connect IQ Store release.
 
 > Pause Guardian never resumes, saves, or changes an activity. Garmin remains in control of the recording. This project is independent and is not affiliated with or endorsed by Garmin.
 
@@ -15,29 +15,30 @@ A completed version should notice this sequence:
 3. Movement continues long enough to rule out a few accidental steps.
 4. Your watch vibrates to remind you that recording is still paused.
 
-Before building that detector, Gate 1 tests the hard platform question: can a Connect IQ data field still receive fresh information and vibrate behind Garmin's native pause screen?
+The field-test build uses that behavior now, while retaining diagnostic evidence so we can validate it safely on real firmware.
 
 ## What this build does
 
 - Runs as a data field inside Garmin's native Run activity.
 - Distinguishes manual `STOPPED` from Auto Pause `PAUSED` using `Activity.Info.timerState`.
 - Checks whether callbacks and fresh GPS data continue during a manual stop.
-- Sends one three-pulse vibration probe five seconds after a manual stop.
+- Sends one three-pulse reminder after at least six seconds and six metres of qualifying movement while manually stopped.
+- Sends at most one reminder per manual-pause episode and re-arms after the activity resumes.
 - Samples memory use and stores a compact result from the previous session.
 - Rejects missing GPS, poor-quality GPS, repeated cached samples, callback gaps, and incomplete movement windows.
 
-It does **not** detect forgotten resumes as a finished product, support cycling yet, run as a background phone app, or resume an activity automatically.
+It does **not** support cycling yet, run as a background phone app, or resume an activity automatically. The movement thresholds are still being validated outdoors.
 
 ## Current status
 
 | Area | Status |
 | --- | --- |
 | Instinct 2 build and package | Verified with Connect IQ SDK 9.2.0 |
-| Automated tests | 15 passed, 0 failed |
+| Automated tests | 17 passed, 0 failed |
 | Physical installation | Verified on an Instinct 2 |
 | Data field visible in native Run | Verified |
-| Full manual-pause feasibility test | In progress; follow [the Gate 1 checklist](GATE1_TEST.md) |
-| Forgotten-resume reminder | Planned after Gate 1 passes |
+| Movement-triggered reminder | Implemented for physical field testing |
+| Full manual-pause validation | In progress; follow [the field checklist](GATE1_TEST.md) |
 
 ## Install and use
 
@@ -46,7 +47,7 @@ Pause Guardian is not in the Connect IQ Store yet. The current build must be com
 1. Follow the [complete user guide](docs/USER_GUIDE.md) to build and copy `PauseGuardian.prg` to the watch.
 2. On the Instinct 2, hold **MENU** and open **Activities & Apps → Run → Run Settings → Data Screens**.
 3. Select a data screen, edit its data fields, and select an individual field slot.
-4. Choose **Connect IQ → Pause Guardian G1**.
+4. Choose **Connect IQ → Pause Guardian Test**.
 5. Start an outdoor Run and keep the field visible while completing [GATE1_TEST.md](GATE1_TEST.md).
 
 If **Connect IQ** is not visible, first select an individual field slot. The Connect IQ category appears at the field-selection level, not at the top of the Data Screens menu.
@@ -65,12 +66,12 @@ The final two characters are hexadecimal. Several observations can be combined: 
 | `01` | At least 18 stopped-state callbacks, with no gap over two seconds |
 | `02` | Running profile, usable GPS, speed of at least 1.4 m/s, six seconds, and at least six metres of displacement |
 | `04` | Authoritative timer data reported both manual `STOPPED` and Auto Pause `PAUSED` |
-| `08` | The three-pulse vibration call was attempted without an exception |
+| `08` | The movement-triggered three-pulse reminder was attempted without an exception |
 | `10` | Stopped-state callbacks remained continuous for five minutes |
 | `20` | Sampled app memory stayed at or below 24 KiB |
 | `40` | The latest diagnostic checkpoint was stored |
 
-`O7F` means every automatic observation bit is set. It is still not a physical pass: the watch API cannot confirm that the user actually felt the vibration, and the external SDK profiler must be checked separately.
+`O7F` means every automatic observation bit is set. It is still not a complete physical pass: the watch API cannot confirm that the user actually felt the reminder, and the external SDK profiler must be checked separately.
 
 ## Build and test
 
@@ -109,16 +110,16 @@ Supporting more watches is possible, but each family must be compiled, checked f
 ## Documentation
 
 - [User guide](docs/USER_GUIDE.md): build, install, configure, use, and troubleshoot the field
-- [Gate 1 physical test](GATE1_TEST.md): the acceptance checklist for a real Instinct 2
+- [Movement-reminder field test](GATE1_TEST.md): the acceptance checklist for a real Instinct 2
 - [Architecture](docs/ARCHITECTURE.md): data flow, components, state handling, and safety boundaries
 - [Verification record](VERIFICATION.md): automated and physical evidence collected so far
 - [Contributing](CONTRIBUTING.md): development setup, test commands, and device-support requirements
 
 ## Roadmap
 
-1. Complete Gate 1 on a physical Instinct 2.
-2. Build the conservative movement detector and reminder cooldown.
-3. Validate false positives across real stops, GPS conditions, and Auto Pause.
+1. Validate the movement reminder on a physical Instinct 2.
+2. Measure false positives across real stops, GPS conditions, and Auto Pause.
+3. Tune delay, speed, distance, vibration, and cooldown from field-test evidence.
 4. Add cycling after running behavior is reliable.
 5. Expand to Garmin devices that pass build, layout, memory, simulator, and physical-pause checks.
 6. Prepare a Connect IQ Store release with user settings and a non-technical setup flow.

@@ -3,18 +3,6 @@ import Toybox.Lang;
 import Toybox.Activity;
 
 (:test)
-function testProbeRequestsVibrationOnlyOnce(logger as Test.Logger) as Boolean {
-    var monitor = new Gate1Monitor();
-
-    Test.assertEqual(false, monitor.shouldProbe(0, true));
-    Test.assertEqual(false, monitor.shouldProbe(4999, true));
-    Test.assertEqual(true, monitor.shouldProbe(5000, true));
-    Test.assertEqual(false, monitor.shouldProbe(6000, true));
-
-    return true;
-}
-
-(:test)
 function testStateObservationRequiresManualStopAndAutoPause(logger as Test.Logger) as Boolean {
     var monitor = new Gate1Monitor();
 
@@ -173,36 +161,183 @@ function testThreeIdenticalTuplesInterruptMovementCandidate(logger as Test.Logge
 (:test)
 function testSubSixMeterWindowCannotQualifyLate(logger as Test.Logger) as Boolean {
     var monitor = new Gate1Monitor();
+    var shouldRemind = false;
 
     for (var i = 0; i <= 6; i++) {
-        monitor.noteMovementSample(i * 1000, 1500, Toybox.Position.QUALITY_GOOD, 0, i * 88, true, true);
+        shouldRemind = monitor.noteMovementSample(
+            i * 1000,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            i * 88,
+            true,
+            true
+        ) || shouldRemind;
     }
     Test.assertEqual(0, monitor.getObservationMask() & 0x02);
 
-    monitor.noteMovementSample(7000, 1500, Toybox.Position.QUALITY_GOOD, 0, 620, true, true);
+    shouldRemind = monitor.noteMovementSample(
+        7000,
+        1500,
+        Toybox.Position.QUALITY_GOOD,
+        0,
+        620,
+        true,
+        true
+    ) || shouldRemind;
     Test.assertEqual(0, monitor.getObservationMask() & 0x02);
+    Test.assertEqual(false, shouldRemind);
 
     return true;
 }
 
 (:test)
-function testProbeRearmsAfterSystemTimerRollover(logger as Test.Logger) as Boolean {
+function testQualifyingStoppedMovementRequestsReminder(logger as Test.Logger) as Boolean {
     var monitor = new Gate1Monitor();
+    var shouldRemind = false;
 
-    Test.assertEqual(false, monitor.shouldProbe(2147483000, true));
-    Test.assertEqual(false, monitor.shouldProbe(-2147483000, true));
-    Test.assertEqual(true, monitor.shouldProbe(-2147478000, true));
+    for (var second = 0; second <= 6; second++) {
+        shouldRemind = monitor.noteMovementSample(
+            second * 1000,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            second * 92,
+            true,
+            true
+        ) || shouldRemind;
+    }
 
+    Test.assertEqual(true, shouldRemind);
     return true;
 }
 
 (:test)
-function testProbeRearmsAfterImplausibleTimerGap(logger as Test.Logger) as Boolean {
+function testStoppedMovementRequestsOnlyOneReminderPerPause(logger as Test.Logger) as Boolean {
     var monitor = new Gate1Monitor();
+    var reminderCount = 0;
 
-    Test.assertEqual(false, monitor.shouldProbe(0, true));
-    Test.assertEqual(false, monitor.shouldProbe(60001, true));
-    Test.assertEqual(true, monitor.shouldProbe(65001, true));
+    for (var second = 0; second <= 13; second++) {
+        monitor.noteCallback(second * 1000, true);
+        if (monitor.noteMovementSample(
+            second * 1000,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            second * 92,
+            true,
+            true
+        )) {
+            reminderCount++;
+        }
+    }
 
+    Test.assertEqual(1, reminderCount);
+    return true;
+}
+
+(:test)
+function testReminderRearmsAfterActivityResumes(logger as Test.Logger) as Boolean {
+    var monitor = new Gate1Monitor();
+    var reminderCount = 0;
+
+    for (var firstSecond = 0; firstSecond <= 6; firstSecond++) {
+        monitor.noteCallback(firstSecond * 1000, true);
+        if (monitor.noteMovementSample(
+            firstSecond * 1000,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            firstSecond * 92,
+            true,
+            true
+        )) {
+            reminderCount++;
+        }
+    }
+
+    monitor.noteTimerState(Activity.TIMER_STATE_ON);
+
+    for (var secondSecond = 0; secondSecond <= 6; secondSecond++) {
+        var nowMs = 8000 + (secondSecond * 1000);
+        monitor.noteCallback(nowMs, true);
+        if (monitor.noteMovementSample(
+            nowMs,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            1000,
+            secondSecond * 92,
+            true,
+            true
+        )) {
+            reminderCount++;
+        }
+    }
+
+    Test.assertEqual(2, reminderCount);
+    return true;
+}
+
+(:test)
+function testAutoPauseMovementNeverRequestsReminder(logger as Test.Logger) as Boolean {
+    var monitor = new Gate1Monitor();
+    var shouldRemind = false;
+
+    for (var second = 0; second <= 10; second++) {
+        monitor.noteCallback(second * 1000, false);
+        shouldRemind = monitor.noteMovementSample(
+            second * 1000,
+            2000,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            second * 120,
+            false,
+            true
+        ) || shouldRemind;
+    }
+
+    Test.assertEqual(false, shouldRemind);
+    return true;
+}
+
+(:test)
+function testMissingStoppedSampleDoesNotRearmReminder(logger as Test.Logger) as Boolean {
+    var monitor = new Gate1Monitor();
+    var reminderCount = 0;
+
+    for (var firstSecond = 0; firstSecond <= 6; firstSecond++) {
+        monitor.noteCallback(firstSecond * 1000, true);
+        if (monitor.noteMovementSample(
+            firstSecond * 1000,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            0,
+            firstSecond * 92,
+            true,
+            true
+        )) {
+            reminderCount++;
+        }
+    }
+
+    monitor.noteCallback(7000, false);
+
+    for (var secondSecond = 0; secondSecond <= 6; secondSecond++) {
+        var nowMs = 8000 + (secondSecond * 1000);
+        monitor.noteCallback(nowMs, true);
+        if (monitor.noteMovementSample(
+            nowMs,
+            1500,
+            Toybox.Position.QUALITY_GOOD,
+            1000,
+            secondSecond * 92,
+            true,
+            true
+        )) {
+            reminderCount++;
+        }
+    }
+
+    Test.assertEqual(1, reminderCount);
     return true;
 }
