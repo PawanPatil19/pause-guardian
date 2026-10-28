@@ -20,6 +20,9 @@ It also needs the `GARMIN_USERNAME`, `GARMIN_PASSWORD`, and `CIQ_AGREEMENT_HASH`
 
 ## Steps
 
+The release workflow reuses `scripts/ci-setup-sdk.sh` and `scripts/ci-run-tests.sh` from the CI setup, so CI must be merged first.
+
+
 1. Move the `Unreleased` entries in `CHANGELOG.md` into a version section headed `## [x.y.z] - YYYY-MM-DD` (for the first tag, date the `0.1.0-g1` heading and delete its "Not tagged yet" line).
 2. Set `BUILD_ID` to the same version.
 3. Open a pull request, wait for CI, and merge it.
@@ -30,7 +33,7 @@ It also needs the `GARMIN_USERNAME`, `GARMIN_PASSWORD`, and `CIQ_AGREEMENT_HASH`
    git push origin v0.1.0-g1
    ```
 
-5. The **Release** workflow builds the signed `.prg` and `.iq`, records their SHA-256 checksums, and creates a GitHub Release. Tags with a pre-release suffix (such as `-g1` or `-beta.1`) are marked as pre-releases.
+5. The **Release** workflow runs the test suite, then builds the signed `.prg` and `.iq`, records their SHA-256 checksums, and creates a GitHub Release. Tags with a pre-release suffix (such as `-g1` or `-beta.1`) are marked as pre-releases.
 6. Record the checksums in `VERIFICATION.md`.
 
 ## Connect IQ Store rollout

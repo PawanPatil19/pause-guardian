@@ -18,7 +18,7 @@ jobs:
       CIQ_SIGNING_KEY_B64: ${{ secrets.CIQ_SIGNING_KEY_B64 }}
       CIQ_SDK_VERSION: "9.2.0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Tag matches BUILD_ID and CHANGELOG
         id: version
@@ -46,24 +46,34 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: stable
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Install Connect IQ SDK and devices
+      - name: Install simulator dependencies
         run: |
-          go install github.com/lindell/connect-iq-sdk-manager-cli@latest
-          manager="$(go env GOPATH)/bin/connect-iq-sdk-manager-cli"
-          "$manager" agreement accept --acceptance-hash="$CIQ_AGREEMENT_HASH"
-          "$manager" login
-          "$manager" sdk set "$CIQ_SDK_VERSION"
-          "$manager" device download --manifest=manifest.xml
-          "$manager" sdk current-path --bin >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install -y xvfb libusb-1.0-0 libjpeg8 libsm6 \
+            libwebkit2gtk-4.0-37 libwebkit2gtk-4.1-0 libsoup-3.0-0
+
+      # Shared with ci.yml. The SDK manager is pinned by commit there.
+      - name: Install Connect IQ SDK and devices
+        run: scripts/ci-setup-sdk.sh
+
+      # Tests run with a throwaway key, before the store key is restored.
+      - name: Run No Evil tests
+        run: |
+          mkdir -p "$RUNNER_TEMP/testkey"
+          openssl genrsa -out "$RUNNER_TEMP/testkey/key.pem" 4096
+          openssl pkcs8 -topk8 -inform PEM -outform DER -nocrypt \
+            -in "$RUNNER_TEMP/testkey/key.pem" -out "$RUNNER_TEMP/testkey/developer_key.der"
+          xvfb-run -a scripts/ci-run-tests.sh "$RUNNER_TEMP/testkey/developer_key.der"
+          rm -rf "$RUNNER_TEMP/testkey"
 
       - name: Restore signing key
         run: |
