@@ -1,5 +1,7 @@
 # Pause Guardian
 
+[![CI](https://github.com/PawanPatil19/pause-guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/PawanPatil19/pause-guardian/actions/workflows/ci.yml)
+
 Pause Guardian is an experimental Garmin data field for runners and cyclists who sometimes resume moving but forget to resume their activity recording.
 
 The current release is **Gate 1**, a diagnostic build for the Garmin Instinct 2. It proves whether Garmin continues delivering timer, GPS, and vibration access while the native activity is manually paused. It installs on a physical watch and displays its diagnostic field, but it is not yet the finished forgotten-resume reminder.
