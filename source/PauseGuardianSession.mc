@@ -48,6 +48,8 @@ module PauseGuardianSession {
             };
             Storage.setValue(SUMMARY_KEY, summary);
 
+            // A failed read-back leaves 40 in whatever was stored, on purpose: the next
+            // successful checkpoint overwrites it, and the live mask shows the failure now.
             var readback = Storage.getValue(SUMMARY_KEY) as Dictionary?;
             monitor.notePersistence(
                 (readback != null) &&
