@@ -14,7 +14,7 @@ jobs:
     name: Repository checks
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install xmllint
         run: sudo apt-get update && sudo apt-get install -y libxml2-utils
@@ -37,13 +37,13 @@ jobs:
       GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
       CIQ_AGREEMENT_HASH: ${{ secrets.CIQ_AGREEMENT_HASH }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: stable
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -55,10 +55,12 @@ jobs:
             libwebkit2gtk-4.0-37 libwebkit2gtk-4.1-0 libsoup-3.0-0
 
       - name: Install Connect IQ SDK and devices
+        id: sdk
         run: scripts/ci-setup-sdk.sh
 
       # A throwaway key for this run only. Store releases use the real key from release.yml.
       - name: Generate throwaway signing key
+        if: steps.sdk.outputs.skip != 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/key"
           openssl genrsa -out "$RUNNER_TEMP/key/key.pem" 4096
@@ -66,21 +68,24 @@ jobs:
             -in "$RUNNER_TEMP/key/key.pem" -out "$RUNNER_TEMP/key/developer_key.der"
 
       - name: Release build (warnings enabled)
+        if: steps.sdk.outputs.skip != 'true'
         run: |
           monkeyc -d instinct2 -f monkey.jungle -o bin/PauseGuardian.prg \
             -y "$RUNNER_TEMP/key/developer_key.der" -w -r -O 2z -l 1
 
       - name: Package export
+        if: steps.sdk.outputs.skip != 'true'
         run: |
           monkeyc -f monkey.jungle -o bin/PauseGuardian.iq \
             -y "$RUNNER_TEMP/key/developer_key.der" -w -r -e -O 2z -l 1
 
       - name: Run No Evil tests
+        if: steps.sdk.outputs.skip != 'true'
         run: xvfb-run -a scripts/ci-run-tests.sh "$RUNNER_TEMP/key/developer_key.der"
 
       - name: Upload test output
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: always() && steps.sdk.outputs.skip != 'true'
+        uses: actions/upload-artifact@v5
         with:
           name: test-output
           path: bin/test-output.txt

@@ -57,7 +57,9 @@ Garmin requires a signed-in account to download SDKs and device files, so the bu
 | `GARMIN_PASSWORD` | Garmin developer account password |
 | `CIQ_AGREEMENT_HASH` | Run `connect-iq-sdk-manager-cli agreement view` locally once, read the SDK license agreement, and copy the acceptance hash it prints |
 
-Without them the build job fails with a message naming the missing secrets. CI never uses the real store signing key.
+Without them, pull requests skip the build job with a warning naming the missing secrets, and pushes to `main` fail. CI never uses the real store signing key.
+
+The test step fails unless at least `CIQ_MIN_TESTS` tests pass (15 by default, set in `scripts/ci-run-tests.sh`). Raise it when you add tests.
 
 ## Before opening a change
 
