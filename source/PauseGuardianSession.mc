@@ -4,7 +4,8 @@ import Toybox.System;
 
 module PauseGuardianSession {
     const SUMMARY_KEY = "last_gate1_summary_v1";
-    const BUILD_ID = "g1-0.1.0";
+    // Single source of truth for the app version. Must match the release tag (v0.1.0-g1) and CHANGELOG.md.
+    const BUILD_ID = "0.1.0-g1";
 
     var monitor = new Gate1Monitor();
     var eventMask = 0;
