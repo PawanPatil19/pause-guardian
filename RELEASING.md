@@ -8,7 +8,7 @@ Connect IQ asks for the version again when you upload to the store. Enter the sa
 
 ## Signing key
 
-Every store version must be signed with the same developer key. Losing or replacing it means publishing a new app with a new store listing. Keep the key offline with a backup, and never commit it.
+Every store version must be signed with the same developer key. Losing or replacing it means publishing a new app with a new store listing. `CIQ_SIGNING_KEY_B64` must hold the same key you use for the first store upload, for every release after it. GitHub secrets can't be read back, so keep the original key offline with at least one backup outside GitHub, and never commit it.
 
 The release workflow reads it from the `CIQ_SIGNING_KEY_B64` repository secret:
 
@@ -26,7 +26,7 @@ The release workflow reuses `scripts/ci-setup-sdk.sh` and `scripts/ci-run-tests.
 1. Move the `Unreleased` entries in `CHANGELOG.md` into a version section headed `## [x.y.z] - YYYY-MM-DD` (for the first tag, date the `0.1.0-g1` heading and delete its "Not tagged yet" line).
 2. Set `BUILD_ID` to the same version.
 3. Open a pull request, wait for CI, and merge it.
-4. Tag `main` and push the tag:
+4. Tag `main` and push the tag. For `v0.1.0-g1`, wait until the license, CI, versioning, and session-test PRs have all merged, since its changelog lists them:
 
    ```sh
    git tag v0.1.0-g1
