@@ -12,7 +12,7 @@ class PauseGuardianField extends WatchUi.SimpleDataField {
 
     public function initialize() {
         SimpleDataField.initialize();
-        label = "Pause G1";
+        label = WatchUi.loadResource(Rez.Strings.FieldLabel) as String;
         _eventTimerState = Activity.TIMER_STATE_OFF;
         _vibrationPattern = [
             new Attention.VibeProfile(100, 500),

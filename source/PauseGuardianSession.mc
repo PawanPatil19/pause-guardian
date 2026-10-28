@@ -32,28 +32,29 @@ module PauseGuardianSession {
         if (!dirty) {
             return;
         }
-        monitor.notePersistence(true);
         try {
+            monitor.noteMemorySample(System.getSystemStats().usedMemory);
+            // The stored mask claims 40 because this write is the checkpoint. The live
+            // monitor only earns 40 after the read-back below confirms the write.
+            var storedMask = monitor.getObservationMask() | 0x40;
             var summary = {
                 "version" => 1,
                 "build" => BUILD_ID,
-                "mask" => monitor.getObservationMask(),
+                "mask" => storedMask,
                 "events" => eventMask,
                 "callbacks" => monitor.getStoppedCallbackCount(),
                 "maxGap" => monitor.getMaximumCallbackGap(),
                 "maxMemory" => monitor.getMaximumUsedMemory()
             };
-            monitor.noteMemorySample(System.getSystemStats().usedMemory);
-            summary["maxMemory"] = monitor.getMaximumUsedMemory();
-            summary["mask"] = monitor.getObservationMask();
             Storage.setValue(SUMMARY_KEY, summary);
 
             var readback = Storage.getValue(SUMMARY_KEY) as Dictionary?;
-            if ((readback == null) ||
-                (readback["version"] != 1) ||
-                (readback["build"] != BUILD_ID)) {
-                monitor.notePersistence(false);
-            }
+            monitor.notePersistence(
+                (readback != null) &&
+                (readback["version"] == 1) &&
+                BUILD_ID.equals(readback["build"]) &&
+                (readback["mask"] == storedMask)
+            );
         } catch (exception) {
             monitor.notePersistence(false);
         }

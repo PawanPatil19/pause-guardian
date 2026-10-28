@@ -84,7 +84,7 @@ Requirements:
 ```sh
 task_ciq_sdk="$(cat "${HOME}/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg")"
 
-# Build and run the 15-test Run No Evil suite.
+# Build and run the Run No Evil suite.
 "$task_ciq_sdk/bin/monkeyc" -d instinct2 -f monkey.jungle \
   -o bin/PauseGuardianTests.prg -y /ABS/PATH/developer_key.der -w -t -l 1
 "$task_ciq_sdk/bin/monkeydo" bin/PauseGuardianTests.prg instinct2 -t
