@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-checks:
+    name: Repository checks
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+      - name: Manifest and resources are well-formed XML
+        run: xmllint --noout manifest.xml resources/*.xml
+
+      - name: No signing keys or build output are committed
+        run: |
+          if git ls-files | grep -Ei '\.(der|pem|key|prg|iq)$|^bin/'; then
+            echo "::error::Signing keys or build output are tracked in Git."
+            exit 1
+          fi
+
+  build-and-test:
+    name: Build and test (instinct2)
+    runs-on: ubuntu-22.04
+    env:
+      GARMIN_USERNAME: ${{ secrets.GARMIN_USERNAME }}
+      GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+      CIQ_AGREEMENT_HASH: ${{ secrets.CIQ_AGREEMENT_HASH }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install simulator dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libusb-1.0-0 libjpeg8 libsm6 \
+            libwebkit2gtk-4.0-37 libwebkit2gtk-4.1-0 libsoup-3.0-0
+
+      - name: Install Connect IQ SDK and devices
+        id: sdk
+        run: scripts/ci-setup-sdk.sh
+
+      # A throwaway key for this run only. Store releases use the real key from release.yml.
+      - name: Generate throwaway signing key
+        if: steps.sdk.outputs.skip != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/key"
+          openssl genrsa -out "$RUNNER_TEMP/key/key.pem" 4096
+          openssl pkcs8 -topk8 -inform PEM -outform DER -nocrypt \
+            -in "$RUNNER_TEMP/key/key.pem" -out "$RUNNER_TEMP/key/developer_key.der"
+
+      - name: Release build (warnings enabled)
+        if: steps.sdk.outputs.skip != 'true'
+        run: |
+          monkeyc -d instinct2 -f monkey.jungle -o bin/PauseGuardian.prg \
+            -y "$RUNNER_TEMP/key/developer_key.der" -w -r -O 2z -l 1
+
+      - name: Package export
+        if: steps.sdk.outputs.skip != 'true'
+        run: |
+          monkeyc -f monkey.jungle -o bin/PauseGuardian.iq \
+            -y "$RUNNER_TEMP/key/developer_key.der" -w -r -e -O 2z -l 1
+
+      - name: Run No Evil tests
+        if: steps.sdk.outputs.skip != 'true'
+        run: xvfb-run -a scripts/ci-run-tests.sh "$RUNNER_TEMP/key/developer_key.der"
+
+      - name: Upload test output
+        if: always() && steps.sdk.outputs.skip != 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-output
+          path: bin/test-output.txt
+          if-no-files-found: ignore
