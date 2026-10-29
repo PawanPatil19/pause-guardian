@@ -25,7 +25,7 @@ fi
 go install "github.com/lindell/connect-iq-sdk-manager-cli@${manager_ref}"
 manager="$(go env GOPATH)/bin/connect-iq-sdk-manager-cli"
 
-"$manager" agreement accept --acceptance-hash="$CIQ_AGREEMENT_HASH"
+"$manager" agreement accept --agreement-hash="$CIQ_AGREEMENT_HASH"
 "$manager" login
 "$manager" sdk set "$sdk_version"
 "$manager" device download --manifest=manifest.xml --include-fonts
