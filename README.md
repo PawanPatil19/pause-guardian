@@ -125,8 +125,8 @@ Supporting more watches is possible, but each family must be compiled, checked f
 
 ## Privacy and safety
 
-Pause Guardian works locally on the watch. This build has no account, network service, analytics, advertising, or phone companion. It reads activity state and position only to calculate on-watch diagnostic evidence. It never resumes or modifies the user's activity.
+Pause Guardian works locally on the watch. This build has no account, network service, analytics, advertising, or phone companion. It reads activity state and position only to calculate on-watch diagnostic evidence. It never resumes or modifies the user's activity. See the full [privacy policy](PRIVACY.md).
 
 ## License
 
-No open-source license has been selected yet. The source is publicly viewable, but standard copyright restrictions apply until a license is added.
+Pause Guardian is released under the [MIT License](LICENSE).

@@ -71,6 +71,6 @@ Do not add a product ID and call the device supported. For each device family:
 
 Copy the result form from [GATE1_TEST.md](GATE1_TEST.md). Include watch variant, firmware, vibration settings, Auto Pause setting, battery mode, and any difference between Garmin's pause screen and the custom data page.
 
-## License note
+## License
 
-This repository does not yet include an open-source license. Discuss licensing with the maintainer before contributing code intended for redistribution.
+By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).
