@@ -59,7 +59,7 @@ Garmin requires a signed-in account to download SDKs and device files, so the bu
 
 Without them, pull requests skip the build job with a warning naming the missing secrets, and pushes to `main` fail. CI never uses the real store signing key.
 
-The test step fails unless at least `CIQ_MIN_TESTS` tests pass (15 by default, set in `scripts/ci-run-tests.sh`). Raise it when you add tests.
+The test step fails unless at least `CIQ_MIN_TESTS` tests pass (21 by default, set in `scripts/ci-run-tests.sh`). Raise it when you add tests.
 
 ## Before opening a change
 
