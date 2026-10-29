@@ -1,5 +1,7 @@
 # Pause Guardian
 
+[![CI](https://github.com/PawanPatil19/pause-guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/PawanPatil19/pause-guardian/actions/workflows/ci.yml)
+
 Pause Guardian is an experimental Garmin data field for runners and cyclists who sometimes resume moving but forget to resume their activity recording.
 
 The current release is **Gate 1**, a diagnostic build for the Garmin Instinct 2. It proves whether Garmin continues delivering timer, GPS, and vibration access while the native activity is manually paused. It installs on a physical watch and displays its diagnostic field, but it is not yet the finished forgotten-resume reminder.
@@ -84,7 +86,7 @@ Requirements:
 ```sh
 task_ciq_sdk="$(cat "${HOME}/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg")"
 
-# Build and run the 15-test Run No Evil suite.
+# Build and run the Run No Evil suite.
 "$task_ciq_sdk/bin/monkeyc" -d instinct2 -f monkey.jungle \
   -o bin/PauseGuardianTests.prg -y /ABS/PATH/developer_key.der -w -t -l 1
 "$task_ciq_sdk/bin/monkeydo" bin/PauseGuardianTests.prg instinct2 -t
@@ -127,8 +129,8 @@ Supporting more watches is possible, but each family must be compiled, checked f
 
 ## Privacy and safety
 
-Pause Guardian works locally on the watch. This build has no account, network service, analytics, advertising, or phone companion. It reads activity state and position only to calculate on-watch diagnostic evidence. It never resumes or modifies the user's activity.
+Pause Guardian works locally on the watch. This build has no account, network service, analytics, advertising, or phone companion. It reads activity state and position only to calculate on-watch diagnostic evidence. It never resumes or modifies the user's activity. See the full [privacy policy](PRIVACY.md).
 
 ## License
 
-No open-source license has been selected yet. The source is publicly viewable, but standard copyright restrictions apply until a license is added.
+Pause Guardian is released under the [MIT License](LICENSE).

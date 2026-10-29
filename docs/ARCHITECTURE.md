@@ -27,6 +27,7 @@ Garmin owns the activity recording and screen navigation. Pause Guardian only ob
 | `PauseGuardianSession.mc` | Owns current and previous session state and stores a compact summary |
 | `PauseGeo.mc` | Calculates short local distances from scaled coordinates without allocating `Position.Location` objects |
 | `Gate1MonitorTests.mc` | Exercises the detector boundaries with Garmin's Run No Evil test framework |
+| `PauseGuardianSessionTests.mc` | Exercises checkpoint storage, read-back, reset, and the `Lxx` display window |
 
 ## Two timer-state channels
 
@@ -72,7 +73,7 @@ Checkpoints store a small dictionary containing:
 - stopped callback count and maximum gap
 - maximum sampled memory
 
-Storage is read back immediately to validate the schema and build ID. On reset, the completed mask becomes `Lxx` for ten seconds and a new monitor starts with an empty mask.
+Storage is read back immediately to validate the schema, build ID, and stored mask. The live `40` bit is set only after that read-back succeeds. On reset, the completed mask becomes `Lxx` for ten seconds and a new monitor starts with an empty mask.
 
 ## Memory and display constraints
 
