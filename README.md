@@ -115,6 +115,8 @@ Supporting more watches is possible, but each family must be compiled, checked f
 - [Architecture](docs/ARCHITECTURE.md): data flow, components, state handling, and safety boundaries
 - [Verification record](VERIFICATION.md): automated and physical evidence collected so far
 - [Contributing](CONTRIBUTING.md): development setup, test commands, and device-support requirements
+- [Releasing](RELEASING.md): versioning, signing, GitHub Releases, and the Connect IQ Store rollout
+- [Changelog](CHANGELOG.md): what changed in each version
 
 ## Roadmap
 

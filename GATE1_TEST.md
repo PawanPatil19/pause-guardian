@@ -14,7 +14,7 @@ Gate 1 passes only when all automatic observations below are present and the man
 watch retail variant:
 firmware:
 SDK / compiler: 9.2.0
-build: g1-0.1.0
+build: 0.1.0-g1
 Auto Pause setting:
 DND / vibration setting:
 battery mode:
