@@ -16,9 +16,11 @@ Not tagged yet. Add the date when the `v0.1.0-g1` tag is pushed.
 - `Oxx` observation mask and `Lxx` previous-session mask.
 - Callback continuity, movement, timer-state, vibration, memory, and persistence observations.
 - One-shot three-pulse vibration probe five seconds after a manual stop.
-- 15 Run No Evil unit tests.
+- 21 Run No Evil unit tests, covering the monitor and session storage.
 - MIT license, privacy policy, CI, and a tag-driven release workflow.
 
 ### Changed
 
+- The live `40` persistence bit is set only after the checkpoint read-back succeeds.
+- Field label moved to `resources/strings.xml`.
 - Build ID renamed from `g1-0.1.0` to `0.1.0-g1` so it is a valid semantic version. Signed artifacts change with it, so the checksums in `VERIFICATION.md` apply to the old ID only.
