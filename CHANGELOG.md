@@ -6,9 +6,7 @@ The `-g1` suffix marks Gate 1 diagnostic builds. It is dropped once the forgotte
 
 ## [Unreleased]
 
-## [0.1.0-g1]
-
-Not tagged yet. Add the date when the `v0.1.0-g1` tag is pushed.
+## [0.1.0-g1] - 2026-10-29
 
 ### Added
 
