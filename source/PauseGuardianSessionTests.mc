@@ -22,7 +22,7 @@ function testCheckpointSkipsWriteWhenNothingChanged(logger as Test.Logger) as Bo
 
     PauseGuardianSession.checkpoint();
 
-    Test.assertEqual(null, Storage.getValue(PauseGuardianSession.SUMMARY_KEY));
+    Test.assert(Storage.getValue(PauseGuardianSession.SUMMARY_KEY) == null);
     Test.assertEqual(0, PauseGuardianSession.monitor.getObservationMask() & 0x40);
     resetSessionForTest();
     return true;
@@ -37,8 +37,9 @@ function testCheckpointStoresSummaryAndEarnsPersistenceAfterReadback(logger as T
 
     PauseGuardianSession.checkpoint();
 
-    var stored = Storage.getValue(PauseGuardianSession.SUMMARY_KEY) as Dictionary?;
-    Test.assert(stored != null);
+    var storedValue = Storage.getValue(PauseGuardianSession.SUMMARY_KEY);
+    Test.assert(storedValue != null);
+    var stored = storedValue as Dictionary;
     Test.assertEqual(1, stored["version"]);
     Test.assertEqual(PauseGuardianSession.BUILD_ID, stored["build"]);
     Test.assertEqual(0x02, stored["events"]);
