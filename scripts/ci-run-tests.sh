@@ -6,7 +6,7 @@ set -euo pipefail
 key="${1:?usage: ci-run-tests.sh <developer_key.der>}"
 device="${CIQ_DEVICE:-instinct2}"
 # Raise this when tests are added, so a build that silently drops test files cannot pass.
-min_tests="${CIQ_MIN_TESTS:-15}"
+min_tests="${CIQ_MIN_TESTS:-21}"
 output="bin/test-output.txt"
 
 monkeyc -d "$device" -f monkey.jungle -o bin/PauseGuardianTests.prg -y "$key" -w -t -l 1
